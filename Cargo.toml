@@ -1,0 +1,20 @@
+[package]
+name = "log_keeper"
+version = "0.1.0"
+edition = "2021"
+authors = ["EnvKeeper Team <support@envkeeper.com>"]
+description = "A lightweight macro toolkit for generating statically typed configs and utilities"
+license = "Apache-2.0"
+repository = "https://github.com/envkeeper/log_keeper"
+readme = "README.md"
+keywords = ["macro", "config", "static"]
+categories = [
+  "web-programming",
+  "development-tools",
+  "development-tools::debugging",
+]
+
+[dependencies]
+macro_keeper = "0.0.1"
+futures = "0.3.31"
+futures-timer = "3.0.3"
