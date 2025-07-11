@@ -75,7 +75,7 @@ Add it to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-log_keeper = "0.0.1"
+log_keeper = "0.1.0"
 ```
 
 Then use it like so:
