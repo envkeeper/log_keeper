@@ -1,14 +1,32 @@
 # log_keeper
 
-A modern, thread-safe, asynchronous logging system for Rust.
+**A lightweight, thread-safe, async logging system for Rust apps.**
 
-## Overview
+[![crates.io](https://img.shields.io/crates/v/log_keeper.svg)](https://crates.io/crates/log_keeper)
+[![Docs.rs](https://docs.rs/log_keeper/badge.svg)](https://docs.rs/log_keeper)
+![License: Apache-2.0](https://img.shields.io/crates/l/log_keeper)
 
-`log_keeper` provides a buffered, multi-threaded logging runtime. Log messages are sent from your main application thread to a background worker thread, which processes and outputs them asynchronously. This design ensures minimal blocking in your main code and safe, graceful shutdown.
+---
 
-## Architecture
+## ✨ Features
 
-```
+- 🔒 Thread-safe with `Arc<Buffer>` sharing
+- ⚙️ Buffered logging with zero-cost macros
+- 🧵 Asynchronous logging via background worker
+- ✅ Graceful shutdown (`.join()`)
+- 📦 No runtime dependencies outside of `futures`
+
+---
+
+## 🧠 Overview
+
+`log_keeper` provides a fast, zero-alloc logging pipeline designed for async and multi-threaded environments. Logs are pushed into a buffer and processed asynchronously on a dedicated worker thread, reducing I/O blocking in your main thread.
+
+---
+
+## 📐 Architecture
+
+```text
 Main Thread
     |
     v
@@ -39,52 +57,90 @@ Main Thread
 +---------------------+
 |   Worker            |  (worker thread)
 |---------------------|
-| - id: usize         |
 | - logger: Arc<Mutex<JobLogger>>
 | - handle: Option<JoinHandle<()>>
 +---------------------+
         |
-        |  (loop_event: runs in a new thread)
         v
-+---------------------+
-| Worker Thread       |  (background thread)
-|---------------------|
-| - Receives log messages
-| - Calls logger methods
-+---------------------+
+  [ Worker Thread ]
+     - Loops & processes log events
+     - Writes logs via JobLogger
 ```
 
-## Threading Model
+---
 
-- **Main Thread:**
-  - Owns the `LogKeeper`, which manages the buffer, logger, and worker.
-  - All log calls (e.g., `log_keeper.info("msg")`) are made here.
+## 🚀 Getting Started
 
-- **Worker Thread:**
-  - Created by `Worker::start_logging`.
-  - Runs in the background, processing log messages from the buffer.
+Add it to your `Cargo.toml`:
 
-- **Total Threads:**
-  - 1 main thread (your application)
-  - 1 worker thread (for logging)
+```toml
+[dependencies]
+log_keeper = "0.0.1"
+```
 
-## Usage
+Then use it like so:
 
 ```rust
 use log_keeper::{LogKeeper, Filter};
 
-let log_keeper = LogKeeper::new(Filter::Info);
-log_keeper.info("Hello, world!");
-log_keeper.debug("Debug message");
-log_keeper.warn("Warning!");
-log_keeper.error("Error!");
-log_keeper.join(); // Waits for all logs to be processed before exit
+fn main() {
+    let log = LogKeeper::new(Filter::Info);
+
+    log.info("Server started");
+    log.debug("This will not be shown with Filter::Info");
+    log.warn("Low disk space!");
+    log.error("Unexpected error occurred");
+
+    // Optional: Waits for all logs to flush before exiting
+    log.join();
+}
 ```
 
-## Graceful Shutdown
+---
 
-Call `log_keeper.join()` before your program exits to ensure all log messages are processed and the worker thread is cleanly shut down.
+## 🧪 Log Levels
 
-## License
+`log_keeper` provides the following levels via the `Filter` enum:
 
-MIT
+- `Filter::Error`
+- `Filter::Warn`
+- `Filter::Info`
+- `Filter::Debug`
+
+Only messages at or above the current `Filter` level will be logged.
+
+---
+
+## 🔁 Graceful Shutdown
+
+Ensure all logs are flushed before exiting:
+
+```rust
+log_keeper.join();
+```
+
+This blocks until the background worker finishes processing queued log entries.
+
+---
+
+## 🔧 Configuration
+
+Advanced config is available via the internal `config` module (e.g. buffer size, max retries, etc.), though the public API is kept intentionally minimal for now. Feel free to contribute improvements or submit feature requests.
+
+---
+
+## 📚 Related Projects
+
+- [`macro_keeper`](https://crates.io/crates/macro_keeper) — optional macro utilities used internally
+
+---
+
+## 🤝 Contributing
+
+PRs, suggestions, and issues are welcome! Just fork this repo and submit a PR or open an issue.
+
+---
+
+## 📄 License
+
+Apache-2.0 © [EnvKeeper](https://github.com/envkeeper)
